@@ -1,5 +1,5 @@
 
-#Summary:
+# Summary:
 1. Read the first file of task_events "part-00000-of-00500.csv" to get necessary attributes of each task
 2. For every line of csv file, create task objects and put it under specified jobs
 3. Sort all the tasks under one job by the order of task index
