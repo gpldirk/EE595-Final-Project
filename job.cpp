@@ -1,4 +1,4 @@
-
+#include <algorithm>
 #include "job.h"
 
 Job::Job() {}
