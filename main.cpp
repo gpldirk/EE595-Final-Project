@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 #include "task.h"
 #include "job.h"
@@ -84,8 +85,8 @@ int main() {
         kv.second.sortTasks();
         jobs.push_back(kv.second);
     }
-    // sort all the jobs by its priority
-    sort(jobs.begin(), jobs.end(), compare);
+    // sort all the jobs by its priority WORK IN PROGRESS
+    //sort(jobs.begin(), jobs.end(), compare); 
 
     // after sorting jobs and tasks, put required info of tasks into txt file
     ofstream fout("./tasks.txt");
