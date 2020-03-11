@@ -26,12 +26,10 @@ string& Trim(string &s) {
 int main() {
     map<long, Job> map;
     vector<Job> jobs;
-    int numExp = 3;
-    int filesN[numExp] = {1,6,9}
+    int numExp = 9; //this can be 1, 6, 9
 
     // task_events.csv = from part-00000-of-00500.csv to part-00499-of-00500.csv
-    for (int i = 0; i < numExp; i++) {
-        string fileName = "./part-0000" + to_string(filesN[i]) + "-of-00500.csv";
+        string fileName = "./part-0000" + to_string(numExp) + "-of-00500.csv";
         // string fileName = "../part-00000-of-00500.csv";
         ifstream fin(fileName, ios::in);
         string line;
@@ -56,12 +54,12 @@ int main() {
             }
 
             task.setTime(stol(Trim(fields[0])));
-            // cout << task.getTime() << endl;
+             //cout << task.getTime() << endl;
 
-            /*task.setJobId(stol(Trim(fields[2])));
-            // cout << task.getJobId() << endl;
+            task.setJobId(stol(Trim(fields[2])));
+             //cout << task.getJobId() << endl;
 
-            task.setTaskIndex(stol(Trim(fields[3])));
+            /*task.setTaskIndex(stol(Trim(fields[3])));
             // cout << task.getTaskIndex() << endl;
 
             task.setMachineId(stol(Trim(fields[4])));
@@ -70,33 +68,32 @@ int main() {
             task.setPriority(stol(Trim(fields[8])));
             // cout << task.getPriority() << endl;*/
 
-            task.setRequestedCpu(stof(Trim(fields[1])));
+            task.setRequestedCpu(stof(Trim(fields[9])));
             // cout << task.getRequestedCpu() << endl;
 
-            task.setRequestedMemory(stof(Trim(fields[2])));
+            task.setRequestedMemory(stof(Trim(fields[10])));
             // cout << task.getRequestedMemory() << endl;
 
             map[task.getJobId()].tasks.push_back(task);
             //map[task.getJobId()].setPriority(task.getPriority());
         }
-    }
 
     // before putting all jobs into jobs, sort all tasks in that job by the index of task
-    /*for(auto &kv : map) {
+    for(auto &kv : map) {
         kv.second.sortTasks();
         jobs.push_back(kv.second);
-    }*/
+    }
     // sort all the jobs by its priority WORK IN PROGRESS
     //sort(jobs.begin(), jobs.end(), compare); 
 
     // after sorting jobs and tasks, put required info of tasks into txt file
-    ofstream fout("./tasks-" + to_string(filesN[i])+ ".txt");
-    for (int i = 0; i < jobs.size(); i++) {
+    ofstream fout("./tasks-" + to_string(numExp)+ ".txt");
+        for (int i = 0; i < jobs.size(); i++) {
         for (int j = 0; j < jobs[i].tasks.size(); j++) {
-            fout << jobs[i].tasks[j].getRequestedCpu() << " " << jobs[i].tasks[j].getRequestedMemory() << " "
-            /*<< jobs[i].tasks[j].getMachineId() << " " << jobs[i].tasks[j].getPriority() */<< " " << jobs[i].tasks[j].getTime() << endl;
+            fout << jobs[i].tasks[j].getTime() << " " << jobs[i].tasks[j].getRequestedCpu() << " " << jobs[i].tasks[j].getRequestedMemory() << endl;
+            /*<< jobs[i].tasks[j].getMachineId() << " " << jobs[i].tasks[j].getPriority() */
         }
     }
-
+    
     return 0;
 }
