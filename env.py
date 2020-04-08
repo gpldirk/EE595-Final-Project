@@ -32,7 +32,15 @@ class VirtualMachine(object):
     self.memory = virtual_machine_repository[vm_type][1]
     self.required_cpu = required_cpu
     self.required_memory = required_memory
-    
+  
+  # check constraints (9, 10)
+  def violated(self, task):
+    if task.requested_cpu + self.required_cpu > self.cpu or \
+        task.requested_memory + self.required_memory > self.memory:
+      return True
+    else:
+      return False
+
 class Server(object):
   def __init__(self, cpu, memory, vm_type):
     self.cpu = cpu
@@ -41,9 +49,22 @@ class Server(object):
     self.numOfVM = min(self.cpu // virtual_machine_repository[vm_type][0], 
                        self.memory // virtual_machine_repository[vm_type][1])
     self.vm_list = []
-    for i in range(numOfVM):
+    for i in range(self.numOfVM):
       self.vm_list.append(VirtualMachine(vm_type))
   
+  # check constraints (11, 12)
+  def violated(self, task):
+    total_required_cpu = 0
+    total_required_memory = 0
+    for i in range(self.numOfVM):
+      total_required_cpu += self.vm_list[i].required_cpu
+      total_required_memory += self.vm_list[i].requested_memory
+
+    if total_required_cpu + task.requested_cpu > self.cpu or \
+        total_required_memory + task.requested_memory > self.memory:
+      return True
+    return False
+
   def CPU_Utilization_Rate(self):
     utilize_cpu = 0
     for vm in self.vm_list:
@@ -54,37 +75,88 @@ class Server(object):
 
 class Cluster(object):
   def __init__(self):
-    self.cpu = 0
-    self.memory = 0
+    self.cpu = serversOfCluster * server_cpu
+    self.memory = serversOfCluster * server_memory
+    self.left_cpu = self.cpu
+    self.left_memory = self.memory
     self.servers = []
-    for i in range(serversOfCluster):
-      # randomly choose the vm_type for current server
+    for _ in range(serversOfCluster):
+      # randomly choose the vm_type for current server or small:medium:large = 5:3:2
       vm_type = np.random.choice(virtual_machine_repository.keys())
       self.servers.append(Server(server_cpu, server_memory, vm_type))
 
+# action space: available clusters, servers, hours and minutes
+# the observation of task is a tuple {CPU, MEM}
 
 class Environment(object):
   def __init__(self):
     self.clusters = []
-    for i in range(numOfClusters):
+    for _ in range(numOfClusters):
       self.clusters.append(Cluster())
-    
-  def reset(self, layer):
-    self.layer = layer
-    self.__init__()
 
-  def Reward(layer, action):
+  def reset(self, layer):
+    self.__init__()
+    self.layer = layer
+
+  def choose_clusters(self, task):
+    new_state = []
+    reject = 1
+    option = 0
+    for index, cluster in enumerate(self.clusters):
+      # ???
+    return new_state, reject, option
+
+  def choose_clusters(self, task, clusters):
+    new_state = []
+    reject = 1
+    option = 0
+    for index, cluster in enumerate(self.clusters):
+      # ???
+    return new_state, reject, option
+  
+  def choose_clusters(self, task, clusters, servers):
+    new_state = []
+    reject = 1
+    option = 0
+    for index, cluster in enumerate(self.clusters):
+      # ???
+    return new_state, reject, option
+  
+  def choose_clusters(self, task, clusters, servers, hours):
+    new_state = []
+    reject = 1
+    option = 0
+    for index, cluster in enumerate(self.clusters):
+      # ???
+    return new_state, reject, option
+
+  # new_observation, reward, reject, option = env.step(action)
+  def step(self, *action):
+    if len(action) == 1:
+      new_state, reject, option = self.choose_clusters(action)
+    elif len(action) == 2:
+      new_state, reject, option = self.choose_servers(action)
+    elif len(action) == 3:
+      new_state, reject, option = self.choose_hours(action)
+    elif len(action) == 4:
+      new_state, reject, option = self.choose_minutes(action)
+
+    reward = get_reward(self.layer)
+    return new_state, reward, reject, option
+
+  
+  def get_utilization_rate(self): #???
+    return 0
+
+
+  def get_reward(self, layer, action): # (take current task on cluster i, server j and vm k)
     if layer == 1:
-      if 0 <= total_utilization_rate < 0.45:
+      if 0 <= self.get_utilization_rate() < 0.45:
         return 1
-      elif total_utilization_rate > 0.5:
+      elif self.get_utilization_rate() > 0.5:
         return -2
       else:
         return -1
-
-  # new_observation, reward, reject, option = env.step(action)
-  def step(self, action):
-    reward = Reward(self.layer, action)
 
 
     
