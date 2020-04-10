@@ -61,7 +61,7 @@ class Agent():
         self.model_file = fname
         #The input_dims is the action space
         self.memory = ReplayBuffer(mem_size, input_dims)
-        self.q_eval = build_dqn(lr, n_actions, input_dims, 256)
+        self.q_eval = build_dqn(lr, n_actions, input_dims, n_actions)
         #initialize action-value function Q with random weights
 
     def store_transition(self, state, action, reward, new_state, done):

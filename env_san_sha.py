@@ -55,8 +55,8 @@ class Environment(object):
 		self.currentJob = {}
 
 		#Resources requested
-		self.reqcpu_per_cluster = []
-		self.reqmem_per_cluster = []
+		self.reqcpu_per_cluster = np.zeros(num_clus)
+		self.reqmem_per_cluster = np.zeros(num_clus)
 
 		#Reject flag
 		self.reject = 0	
@@ -72,7 +72,7 @@ class Environment(object):
 						self.num_clus*self.mem_per_serv*self.serv_per_clus])
 		return observation
 
-	def setState(self, state):
+	def setState(self):
 	#observation +1 
 	#Restale el recurso que asignaste
 		observation_ = np.array([self.num_clus*self.cpu_per_serv*self.serv_per_clus - sum(self.reqcpu_per_cluster), \
@@ -90,23 +90,17 @@ class Environment(object):
 
 	def prepareActionSpace(self, jobNumber, action):
 		#Check if already exists if not add a new 
-		print(str(jobNumber))
 		newAS = self.currentJob.get(str(jobNumber),"")
 		if newAS == '' :
-			print(str(jobNumber))
-			print(currentJob.get(str(jobNumber),""))
-			print(self.currentJob[str(jobNumber)])
-			print(action)
 			self.currentJob[str(jobNumber)] = action
 			self.actionSpace = action
-
 		else:
 			self.actionSpace = newAS 
 			
 	
 	def get_ur(self, action):
-		if layer == 1 :
-			ut=self.reqcpu_per_cluster[action]/ ((self.cpu_per_serv)*(self.serv_per_clus)*100)
+		if self.layer == 1 :
+			ut=(self.reqcpu_per_cluster[action]/ (self.cpu_per_serv*self.serv_per_clus))*100
 		if ut > 0 and ut < 45:
 			return 1
 		elif ut > 50 : 
@@ -114,13 +108,13 @@ class Environment(object):
 		else:
 			return -1
 
-	def isLegal(action, request):
+	def isLegal(self,action, request):
 		flag=True
                 #Restriction 1: Limits in CPU
-		if (self.reqcpu_per_cluster[action] + request[0]) >= (cpu_per_serv*serv_per_clus):
+		if (self.reqcpu_per_cluster[action] + request[0]) >= (self.cpu_per_serv*self.serv_per_clus):
 			flag= False
 		#Restriction 2: Limits in Memory
-		if (self.reqmem_per_cluster[action] + request[1]) >= (mem_per_serv*serv_per_clus):
+		if (self.reqmem_per_cluster[action] + request[1]) >= (self.mem_per_serv*self.serv_per_clus):
 			flag= False
 
 		if (self.layer == 1):
@@ -130,19 +124,20 @@ class Environment(object):
 		return flag
 		
 	def step(self, action, request):
-		reward = get_ur(action)
-		if isLegal(action):	
+		reward = self.get_ur(action)
+		if self.isLegal(action,request):	
 			self.reqcpu_per_cluster[action] = self.reqcpu_per_cluster[action] + request[0]
 			self.reqmem_per_cluster[action] = self.reqmem_per_cluster[action] + request[1]
 			self.stateSpace.append(request)
 			self.stateSpace.append(action)
-
-			observation_ = setState()
+			self.reject = 0
+			observation_ = self.setState()
 		else:
 			self.reject = 1
 			self.options = self.actionSpace
+			observation_ = self.currentState()
 
-		return observation_, reward, reject, options
+		return observation_, reward, self.reject, self.options
 
 	'''			
 	#def step(self, action):
