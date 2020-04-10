@@ -52,7 +52,7 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims):
   return model
 
 class DDQNAgent(object):
-  def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, input_dims, epsilon_decay_rate = 0.996, epsilon_end = 0.01, mem_size = 1000000, fname = 'ddqn_model.h5', replace_target = 100):
+  def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, input_dims, epsilon_decay_rate = 0.95, epsilon_end = 0.01, mem_size = 500, fname = 'ddqn_model.h5', replace_target = 300, Y = 20):
     self.n_actions = n_actions
     self.action_space = [i for i in range(self.n_actions)]
     self.alpha = alpha
@@ -99,9 +99,10 @@ class DDQNAgent(object):
       _ = self.q_eval.fit(state, q_target, verbose = 0) # train or gredient descent 
 
       # Every Y steps, train evaluation network, decrease epsilon
-      self.epsilon = self.epsilon * self.epsilon_decay_rate if self.epsilon > self.epsilon_min else self.epsilon_min
+      if self.memory.mem_cntr % Y == 0:
+        self.epsilon = self.epsilon * self.epsilon_decay_rate if self.epsilon > self.epsilon_min else self.epsilon_min
 
-      # Every ζ steps, copy Q to Q
+      # Every ζ steps, copy Q to Q'
       if self.memory.mem_cntr % self.replace_target == 0:
           self.update_network_parameters()
         
@@ -116,32 +117,5 @@ class DDQNAgent(object):
     self.q_eval = load_model(self.model_file)
     if self.epsilon <= self.epsilon_min:
       self.update_network_parameters()
-
-class DQN(object):
-  def __init__(self, layer):
-    self.layer = layer
-
-  def DQN(self, *state):
-    decisions = []
-    rejects = []
-    env = Env.Environment()
-    ddqn_agent = DDQNAgent(alpha = 0.0005, gamma = 0.99, n_actions = 4, epsilon = 1.0, batch_size = 64, input_dims = 8)
-
-    for _ in range(E): # E ???
-      env.reset(layer)
-      for _ in range(T): # T ???
-        action = ddqn_agent.choose_action(state)
-        new_state, reward, reject, option = env.step(action)
-        while reject == 1 and option > 1:
-          new_action = round_robin() # traverse all the action/clusters
-          if new_action != action:
-            action = new_action
-            new_state, reward, reject, option = env.step(action)
-
-        ddqn_agent.remember(state, action, reward, new_state)
-        decisions.append(action)
-        rejects.append(reject)
-        ddqn_agent.learn()
-    return decisions, rejects
 
   
