@@ -5,6 +5,8 @@ from env_san_sha import Environment
 import tensorflow as tf
 
 #Layer 1 DQN
+def round_robin(options):
+    return options
 
 if __name__ == '__main__':
 
@@ -13,7 +15,7 @@ if __name__ == '__main__':
     lr = 0.001
     eps = 500
 
-    env = Environment(20,40,2000,3000)
+    env = Environment(300,150,2000,3000)
 
     #Agent initialization
     #input_dims=env.observation_space.shape. Sera la s?, Sera x2?
@@ -22,8 +24,9 @@ if __name__ == '__main__':
                 n_actions=len(env.actionSpace), mem_size=1000000, batch_size=64,
                 epsilon_end=0.01)
 
+    print(len(env.actionSpace))
     #Read the input
-    f=open("tasks-1-2.txt", "r")
+    f=open("tasks-1-2.txt", "r",encoding='utf-8-sig')
     layer=1
     clusters = []
     eps_history = []
@@ -33,7 +36,7 @@ if __name__ == '__main__':
         cl = 0
         env.reset(layer) #environment reset
         line=f.readline().split(",")
-
+        
         while line:
             #Data handling
             jobID = int(line[0])
@@ -43,8 +46,8 @@ if __name__ == '__main__':
             request = [dcpu, dmem]
             observation = env.currentState()
 
-            print(request)
-            print(observation)
+            #print(str(request)+str(i))
+            #print(observation)
 
             action = agent.choose_action(observation)
             env.prepareActionSpace(jobID, action)
@@ -52,7 +55,7 @@ if __name__ == '__main__':
             #Do the reject stuff and valid action number option
             
             #while (keep running until no rejection)      
-            while reject == 1 and len(option)>1:
+            while reject == 1 and options>1:
                 action_ = round_robin(options) 
                 if action != action_ :
                     action = action_
@@ -60,12 +63,19 @@ if __name__ == '__main__':
                 
             agent.store_transition(observation, action, reward, observation_, done)
             observation = observation_  
-            clusters.apped(action)
+            request.append(action)
+            clusters.append(request)
             #store decision and reject signal
             agent.learn()
+            line=f.readline().split(",")
+        f.close()
+
+
+        with open('output.txt', 'w') as f: 
+            for item in clusters: 
+                f.write("%s\n" % item) 
         eps_history.append(agent.epsilon)
 
-    f.close()
+    
        
-    def round_robin(options):
-        return options[0]
+
