@@ -1,3 +1,4 @@
+import numpy as np
 class Environment(object):
 	# Specify how many clusters, servers per cluster, VMs per server, CPU and Mem for each server
 	def __init__(self, num_clus, serv_per_clus, cpu_per_serv, mem_per_serv):
@@ -14,13 +15,9 @@ class Environment(object):
 		self.sm = round(self.cpu_per_serv*.5) # 50% of the server are small VMs
 		self.md = round(self.cpu_per_serv*.3) # 30% of the server are medium VMs
 		self.lg = self.cpu_per_serv - (self.sm+self.md) # 20% of the server are large VMs
-
+		
 		# Dictionary initializing the VMs within the server
-		self.vm_ind = {
-			'sm': sm,
-			'md': md,
-			'lg': lg
-		}
+		self.vm_ind = {'sm': self.sm, 'md': self.md, 'lg': self.lg }
 
 		# The vm dictionary is nested within the server dictionary
 		self.servers = {}
@@ -39,8 +36,8 @@ class Environment(object):
 		
 		# State Space
 		self.stateSpace =  []# All states except for the terminal one
-		self.stateSpace.remove() # Need to remove the terminal state
-		self.stateSpacePlus = # All the states
+		#self.stateSpace.remove() # Need to remove the terminal state
+		#self.stateSpacePlus = # All the states
 		#(DCPU,DMEM)X(Numero de clusters)
 		#(tarea1, asignacion1,tarea2, asignacion2,) 
 		# ss1 = x1 => (Dcpu, Dmem)
@@ -49,7 +46,7 @@ class Environment(object):
 		
 		# Action Space
 		#self.actionSpace = # Clusters
-		self.actionSpace = [i for i range (0, self.num_clus)] # The possible actions for Layer 1 is the list of available clusters
+		self.actionSpace = [i for i in range(0, self.num_clus)] # The possible actions for Layer 1 is the list of available clusters
 
 		# Agent position
 		#self.agentPosition = 
@@ -67,18 +64,20 @@ class Environment(object):
 		#Options
 		self.options = 0
 	
-	def isTerminalState(self, state):
-		return state in self.stateSpacePlus and not in self.stateSpace
+	#def isTerminalState(self, state):
+		#return state in self.stateSpacePlus and not in self.stateSpace
 		
-	#def currentState(self):
-	#get_observation
+	def currentState(self):
+		observation  = 	np.array([self.num_clus*self.cpu_per_serv*self.serv_per_clus, \
+						self.num_clus*self.mem_per_serv*self.serv_per_clus])
+		return observation
 
-	#def setState(self, state):
+	def setState(self, state):
 	#observation +1 
 	#Restale el recurso que asignaste
-	observation_ = [num_clus*cpu_per_serv*serv_per_clus - sum(self.reqcpu_per_cluster), \
-						    num_clus*mem_per_serv*serv_per_clus - sum(self.reqmem_per_cluster)]
-	return observation_
+		observation_ = np.array([self.num_clus*self.cpu_per_serv*self.serv_per_clus - sum(self.reqcpu_per_cluster), \
+						    self.num_clus*self.mem_per_serv*self.serv_per_clus - sum(self.reqmem_per_cluster)])
+		return observation_
 
 	'''	
 	def notValidMove(self, newState, oldState):
@@ -89,11 +88,16 @@ class Environment(object):
 			return False
 	'''
 
-	def prepareActionSpace(self, jobNumber, action, request):
-    	#Check if already exists if not add a new 
+	def prepareActionSpace(self, jobNumber, action):
+		#Check if already exists if not add a new 
+		print(str(jobNumber))
 		newAS = self.currentJob.get(str(jobNumber),"")
-		if newAS  == '':
-    		self.currentJob[str(jobNumber)] = action
+		if newAS == '' :
+			print(str(jobNumber))
+			print(currentJob.get(str(jobNumber),""))
+			print(self.currentJob[str(jobNumber)])
+			print(action)
+			self.currentJob[str(jobNumber)] = action
 			self.actionSpace = action
 
 		else:
@@ -101,19 +105,18 @@ class Environment(object):
 			
 	
 	def get_ur(self, action):
-    	if layer==1:
-    		ut=(self.reqcpu_per_cluster[action]/ (self.cpu_per_serv) \ 
-				                                 *(self.serv_per_clus))*100
-			if ut >= 0 and ut < 45:
-    			return 1
-    		elif: ut > 50
-				return -2
-			else:
-    			return -1
+		if layer == 1 :
+			ut=self.reqcpu_per_cluster[action]/ ((self.cpu_per_serv)*(self.serv_per_clus)*100)
+		if ut > 0 and ut < 45:
+			return 1
+		elif ut > 50 : 
+			return -2
+		else:
+			return -1
 
 	def isLegal(action, request):
 		flag=True
-    	#Restriction 1: Limits in CPU
+                #Restriction 1: Limits in CPU
 		if (self.reqcpu_per_cluster[action] + request[0]) >= (cpu_per_serv*serv_per_clus):
 			flag= False
 		#Restriction 2: Limits in Memory
@@ -123,19 +126,20 @@ class Environment(object):
 		if (self.layer == 1):
 			#Restriction 3: Same job in same cluster
 			if self.actionSpace != action:
-    			flag= False
+				flag= False
 		return flag
 		
-    def step(self, action, request):
+	def step(self, action, request):
 		reward = get_ur(action)
-		if isLegal(action):
-    			
+		if isLegal(action):	
 			self.reqcpu_per_cluster[action] = self.reqcpu_per_cluster[action] + request[0]
-    		self.reqmem_per_cluster[action] = self.reqmem_per_cluster[action] + request[1]
+			self.reqmem_per_cluster[action] = self.reqmem_per_cluster[action] + request[1]
+			self.stateSpace.append(request)
+			self.stateSpace.append(action)
 
-    		observation_ = setState()
+			observation_ = setState()
 		else:
-    		self.reject = 1
+			self.reject = 1
 			self.options = self.actionSpace
 
 		return observation_, reward, reject, options
